@@ -17,7 +17,7 @@ torch.manual_seed(0)
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import get_dist_info, load_checkpoint, init_dist
 
-from mmdet.core import coco_eval, wrap_fp16_model
+from mmdet.core import wrap_fp16_model
 from mmdet.datasets import build_dataloader, build_dataset
 from mmdet.models import build_detector
 
