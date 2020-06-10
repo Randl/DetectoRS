@@ -6,4 +6,4 @@ Pillow<=6.2.2
 six
 terminaltables
 torch>=1.2,<=1.4
-torchvision
+torchvision<0.6.0
