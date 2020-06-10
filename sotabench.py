@@ -1,17 +1,14 @@
-import argparse
+import copy
+import json
 import os
 import os.path as osp
 import shutil
 import tempfile
 import urllib.request
-import json
 
-from sotabencheval.object_detection import COCOEvaluator
-
-import copy
 import mmcv
 import torch
-import torch.distributed as dist
+from sotabencheval.object_detection import COCOEvaluator
 
 torch.manual_seed(0)
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
@@ -155,7 +152,6 @@ def single_gpu_test(model, data_loader, show=False, evaluator=None):
             temp_result_files = cached_results2json(copy.deepcopy(dataset), copy.deepcopy(results), 'temp_results.pkl')
             anns = json.load(open(temp_result_files['bbox']))
             evaluator.add(anns)
-            from sotabencheval.object_detection.utils import get_coco_metrics
             print(evaluator.batch_hash)
             print(evaluator.cache_exists)
             if evaluator.cache_exists:
@@ -314,7 +310,6 @@ def evaluate_model(model_name, paper_arxiv_id, weights_url, weights_name, paper_
         evaluator.save()
 
     else:
-        from mmdet.core import results2json
 
         rank, _ = get_dist_info()
         if out and rank == 0:
@@ -327,14 +322,13 @@ def evaluate_model(model_name, paper_arxiv_id, weights_url, weights_name, paper_
                     result_file = out
                 else:
                     if not isinstance(outputs[0], dict):
-                        result_files = results2json(dataset, outputs, out)
+                        result_files =  dataset.results2json(outputs, out)
                     else:
                         for name in outputs[0]:
                             print('\nEvaluating {}'.format(name))
                             outputs_ = [out[name] for out in outputs]
                             result_file = out + '.{}'.format(name)
-                            result_files = results2json(dataset, outputs_,
-                                                        result_file)
+                            result_files = dataset.results2json(outputs_, result_file)
         anns = json.load(open(result_files['bbox']))
         evaluator.detections = []
         evaluator.add(anns)
@@ -343,7 +337,7 @@ def evaluate_model(model_name, paper_arxiv_id, weights_url, weights_name, paper_
 
 model_configs = []
 
-## Hybrid Task Cascade (HTC)
+## DetectoRS
 
 model_configs.append(
     {'model_name': 'DetectoRS (ResNet-50)',
